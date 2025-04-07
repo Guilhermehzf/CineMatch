@@ -9,8 +9,12 @@ Além da funcionalidade divertida, o projeto se encaixa como um estudo de **Sist
 ---
 ### 👥 Participantes
 
-- Arthur Arash 
+- Arthur Arash Briceño Heidari
 - Beatriz Guimarães Gonçalves
+- João Pedro Alves de Brito
+- Guilherme Fernandes Paes
+- Guilherme Cláudio Marques La
+- Lucas Catem Vianna
 
 
 
@@ -90,5 +94,6 @@ Este projeto não se foca em estética, e sim em **características técnicas de
 
 Se você quiser contribuir, ajudar no projeto, ou participar de alguma parte técnica, fale com a gente! 💬  
 Sugestões e ideias são bem-vindas! 🙌
+- arthurarash.bric@gmail.com
 
 ---
