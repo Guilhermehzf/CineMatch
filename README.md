@@ -9,8 +9,10 @@ Além da funcionalidade divertida, o projeto se encaixa como um estudo de **Sist
 ---
 ### 👥 Participantes
 
-- Arthur Arash (Coordenador)
-- Bea
+- Arthur Arash 
+- Beatriz Guimarães Gonçalves
+
+
 
 ---
 
