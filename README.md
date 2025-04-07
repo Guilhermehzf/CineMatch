@@ -66,14 +66,14 @@ Este projeto não se foca em estética, e sim em **características técnicas de
 
 | Etapa                            | Duração estimada |
 |----------------------------------|------------------|
-| Levantamento de requisitos       | 2 dias           |
-| Prototipagem e formulários       | 3 dias           |
-| Backend (Node.js e Flask)        | 7 dias           |
-| Integração com API de filmes     | 3 dias           |
-| Algoritmo de cruzamento de dados | 4 dias           |
-| Sistema de votação (Tinder-like) | 4 dias           |
-| Testes de performance e SD       | 5 dias           |
-| Documentação e apresentação      | 2 dias           |
+| Levantamento de requisitos       | 2x dias           |
+| Prototipagem e formulários       | 3x dias           |
+| Backend (Node.js e Flask)        | 7x dias           |
+| Integração com API de filmes     | 3x dias           |
+| Algoritmo de cruzamento de dados | 4x dias           |
+| Sistema de votação (Tinder-like) | 4x dias           |
+| Testes de performance e SD       | 5x dias           |
+| Documentação e apresentação      | 2x dias           |
 
 ---
 
