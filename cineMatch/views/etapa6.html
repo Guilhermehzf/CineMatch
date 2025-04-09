@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <title>CineMatch - Resumo Final</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../public/css/style.css">
+  <style>
+    body {
+      background: linear-gradient(to right, #c9c9c9, #f2f2f2);
+      color: #333;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card-final {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 20px;
+      margin-top: 60px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .resumo-box {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+    }
+
+    .next-btn {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container text-center">
+    <div class="card-final">
+      <h2 class="mb-4">🎉 Tudo pronto!</h2>
+      <p>Veja abaixo seu perfil de cinéfilo:</p>
+
+      <div class="resumo-box text-start mx-auto" style="max-width: 500px;">
+        <p><strong>🎬 Gêneros escolhidos:</strong> <span id="generos">Comédia, Ação, Romance</span></p>
+        <p><strong>🌎 Nacionalidade preferida:</strong> <span id="nacionalidade">Tanto faz</span></p>
+        <p><strong>📆 Ano dos filmes:</strong> <span id="ano">Mais recentes (após 2010)</span></p>
+        <p><strong>📊 Preferência de popularidade:</strong> <span id="popularidade">Notas altas / populares</span></p>
+      </div>
+
+      <button class="btn btn-success next-btn" onclick="irParaSwipe()">🚀 Começar a curtir filmes!</button>
+    </div>
+  </div>
+
+  <script>
+    // Aqui você pode puxar os dados do localStorage se quiser manter entre páginas
+    function irParaSwipe() {
+      window.location.href = 'etapa7_swipe.html'; // redireciona para a próxima etapa
+    }
+  </script>
+</body>
+
+</html>

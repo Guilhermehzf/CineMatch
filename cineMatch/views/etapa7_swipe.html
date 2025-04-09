@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <title>CineMatch - Swipe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #e6e6e6;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card-filme {
+      background-color: white;
+      border-radius: 20px;
+      padding: 20px;
+      max-width: 400px;
+      margin: 50px auto;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .poster {
+      width: 100%;
+      border-radius: 15px;
+    }
+
+    .titulo {
+      font-size: 1.5rem;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .botoes {
+      margin-top: 20px;
+    }
+
+    .botoes button {
+      margin: 10px;
+      font-size: 1.2rem;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container text-center">
+    <div class="card-filme" id="cardFilme">
+      <img src="https://via.placeholder.com/300x400?text=Filme+1" class="poster" id="posterFilme">
+      <div class="titulo" id="tituloFilme">Título do Filme</div>
+      <div class="botoes">
+        <button class="btn btn-danger" onclick="passarFilme()"> Passar</button> <!-- ❌ 💚  -->
+        <button class="btn btn-success" onclick="curtirFilme()">Curtir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const filmes = [
+      { titulo: "O Grande Hotel Budapeste", imagem: "https://m.media-amazon.com/images/S/pv-target-images/7e72fc7a5206f12315bc56fbfb4798c4e0ceb5e7aa5e0ab163ccda5313b5b71d.jpg" },
+      { titulo: "Parasita", imagem: "https://br.web.img2.acsta.net/pictures/19/10/04/19/58/1046648.jpg" },
+      { titulo: "Rei dos Aneis", imagem: "https://cdn-images.dzcdn.net/images/cover/f6e8e26d24b1e6ea14b3bbb05a4b36df/0x1900-000000-80-0-0.jpg"},
+      { titulo: "O Predator GHZ", imagem: "https://br.web.img2.acsta.net/medias/nmedia/18/95/80/87/20428742.jpg" }
+    ];
+
+    let index = 0;
+
+    function exibirFilme() {
+      if (index < filmes.length) {
+        const filme = filmes[index];
+        document.getElementById('tituloFilme').textContent = filme.titulo;
+        document.getElementById('posterFilme').src = filme.imagem;
+      } else {
+        document.getElementById('cardFilme').innerHTML = "<h3>✨ Você chegou ao fim da lista!</h3><p>Obrigado por usar o CineMatch 💜</p>";
+      }
+    }
+
+    function curtirFilme() {
+      alert("Você curtiu: " + filmes[index].titulo);
+      index++;
+      exibirFilme();
+    }
+
+    function passarFilme() {
+      index++;
+      exibirFilme();
+    }
+
+    exibirFilme();
+  </script>
+</body>
+
+</html>
