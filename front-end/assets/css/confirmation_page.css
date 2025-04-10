@@ -1,0 +1,131 @@
+body {
+     background: linear-gradient(to right, #e3e3e3, #f8f9fa);
+     color: #333;
+     font-family: 'Segoe UI', sans-serif;
+     transition: background-color 0.3s ease;
+}
+
+.card-final {
+     background-color: rgba(255, 255, 255, 0.95);
+     padding: 40px;
+     border-radius: 24px;
+     margin-top: 60px;
+     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+     transition: box-shadow 0.3s ease;
+}
+
+.card-final:hover {
+     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.genre-btn,
+.option-btn {
+     margin: 8px;
+     min-width: 160px;
+     border-radius: 12px;
+     padding: 12px 20px;
+     font-weight: 500;
+     background-color: #6c63ff;
+     border: none;
+     color: white;
+     transition: all 0.3s ease;
+}
+
+.genre-btn:hover,
+.option-btn:hover {
+     background-color: #574fcf;
+     transform: scale(1.05);
+}
+
+.genre-btn.selected,
+.option-btn.selected {
+     background-color: #4c3bb3;
+     color: #fff;
+     border: 2px solid #ffffff;
+     box-shadow: 0 0 10px rgba(108, 99, 255, 0.4);
+}
+
+.next-btn {
+     margin-top: 30px;
+     padding: 12px 28px;
+     font-size: 1.1rem;
+     border-radius: 16px;
+     background-color: #00b894;
+     transition: background-color 0.3s ease;
+     font-weight: bold;
+}
+
+.next-btn:disabled {
+     background-color: #ccc;
+     cursor: not-allowed;
+}
+
+.next-btn:hover:not(:disabled) {
+     background-color: #019875;
+}
+/* Addicoar  */
+.nation-btn {
+     margin: 8px;
+     min-width: 160px;
+     border-radius: 12px;
+     padding: 12px 20px;
+     font-weight: 500;
+     background-color: #6c63ff;
+     border: none;
+     color: white;
+     transition: all 0.3s ease;
+}
+
+.nation-btn:hover {
+     background-color: #574fcf;
+     transform: scale(1.05);
+}
+
+.nation-btn.selected {
+     background-color: #4c3bb3;
+     color: #fff;
+     border: 2px solid #ffffff;
+     box-shadow: 0 0 10px rgba(108, 99, 255, 0.4);
+}
+/*novo etapa5*/
+body {
+     background: linear-gradient(to right, #c9c9c9, #f2f2f2);
+     color: #333;
+     font-family: 'Segoe UI', sans-serif;
+}
+
+.card-final {
+     background-color: rgba(255, 255, 255, 0.95);
+     padding: 30px;
+     border-radius: 20px;
+     margin-top: 60px;
+     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+     transition: all 0.3s ease-in-out;
+}
+
+.btn-select {
+     background-color: #6c63ff;
+     color: white;
+     margin: 10px;
+     padding: 12px 24px;
+     min-width: 180px;
+     border-radius: 12px;
+     border: none;
+     font-weight: 500;
+     transition: 0.3s ease;
+}
+
+.btn-select:hover {
+     background-color: #574fcf;
+     transform: scale(1.05);
+}
+
+.btn-select.selected {
+     background-color: #4c3bb3;
+     border: 2px solid #ffffff;
+     box-shadow: 0 0 10px rgba(108, 99, 255, 0.4);
+}
+
+.next-btn {
+     margin-top: 30px;
+}
