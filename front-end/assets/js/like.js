@@ -1,19 +1,21 @@
 async function carregarFilme() {
     try {
-        // Exemplo de chamada real: const response = await fetch('https://sua-api.com/filme');
-        const response = await fetch('http://localhost:8080/movie'); // <-- coloque sua URL real aqui
-        const data = await response.json();
-
-        // Preencher os elementos com os dados recebidos
-        document.getElementById("photo-img").src = data.poster;
-        document.getElementById("photo-title").textContent = data.title;
-        document.getElementById("photo-tmdb").href = data.tmdb_url;
-        document.getElementById("photo-year-rating").textContent = `${data.year} • Nota: ${data.rating}`;
-    } catch (error) {
-        console.error("Erro ao carregar o filme:", error);
+        const resposta = await fetch('http://localhost:8888/movie');
+        const filme = await resposta.json();
+    
+        console.log(filme); // debug
+    
+        document.querySelector('.photo-img').src = filme.poster;
+        document.querySelector('.photo-img').alt = filme.title;
+        document.querySelector('.photo-name-and-age h2').textContent = filme.title;
+        document.querySelector('.photo-bio a').href = filme.tmdb_url;
+        document.querySelector('.photo-bio').innerHTML += `
+        <span>${filme.year}</span> <span style="margin-left: 10px">${filme.rating}</span>`;
+    } catch (erro) {
+        console.error('Erro ao carregar o filme:', erro);
     }
-}
-
-// Chamar função ao carregar a página
-window.addEventListener("DOMContentLoaded", carregarFilme);
-
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    carregarFilme();
+  });

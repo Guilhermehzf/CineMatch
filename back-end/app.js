@@ -5,7 +5,7 @@ const cors = require('cors');
 const session = require('express-session');
 
 const app = express();
-const port = 8080;
+const port = 8888;
 
 /*const corsOptions = {
   origin: 'localhost', // Permite somente o frontend em localhost:80
@@ -13,8 +13,8 @@ const port = 8080;
   allowedHeaders: ['Content-Type', 'Authorization'], // Permite cabeçalhos específicos
 };*/
 
-/*Use o middleware CORS
-app.use(cors(corsOptions));*/
+//Use o middleware CORS
+app.use(cors());
 
 app.use(express.json());
 
