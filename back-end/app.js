@@ -5,7 +5,7 @@ const cors = require('cors');
 const session = require('express-session');
 
 const app = express();
-const port = 8888;
+const port = 3535;
 
 /*const corsOptions = {
   origin: 'localhost', // Permite somente o frontend em localhost:80
