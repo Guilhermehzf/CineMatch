@@ -1,54 +1,57 @@
-require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
+const get_movies = require('./src/get_movies');
+const { connectToDatabase, createMongoStore } = require('./db');
+const cors = require('cors');
+const session = require('express-session');
 
 const app = express();
-const PORT = 8080;
+const port = 8080;
 
-app.get('/movie', async (req, res) => {
-  const title = req.query.title;
-  const apiKey = process.env.OMDB_API_KEY;
-  const short = req.query.short;
+/*const corsOptions = {
+  origin: 'localhost', // Permite somente o frontend em localhost:80
+  methods: ['GET', 'POST'], // Permite métodos GET e POST
+  allowedHeaders: ['Content-Type', 'Authorization'], // Permite cabeçalhos específicos
+};*/
 
-  if (!title) {
-    return res.status(400).json({ error: "Parâmetro 'title' é obrigatório." });
-  }
+/*Use o middleware CORS
+app.use(cors(corsOptions));*/
 
+app.use(express.json());
+
+/*app.use(
+  session({
+    secret: '123456789',
+    resave: false,
+    saveUninitialized: false,
+    store: createMongoStore(),
+    cookie: { secure: false, maxAge: 5 * 60 * 60 * 1000 }, // secure=true para HTTPS
+  })
+);*/
+
+app.use(async (req, res, next) => {
   try {
-    const response = await axios.get('https://www.omdbapi.com/', {
-      params: {
-        apikey: apiKey,
-        t: title,
-        plot: short
-      }
-    });
-
-    const data = response.data
-
-    if (data.Response === "False") {
-      return res.status(404).json({ error: data.Error });
-    }
-
-    // Busca a nota do Rotten Tomatoes
-    let rotten = "N/A";
-    if (data.Ratings) {
-      const rt = data.Ratings.find(r => r.Source === "Rotten Tomatoes");
-      if (rt) rotten = rt.Value;
-    }
-
-    res.json({
-      title: data.Title,
-      year: data.Year,
-      genres: data.Genre.split(',').map(g => g.trim()),
-      rottenTomatoes: rotten
-    });
-
+    req.db = await connectToDatabase();
+    next();
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro interno ao buscar dados do filme.' });
+    res.status(500).json({ message: 'Erro interno ao conectar ao banco de dados' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`API rodando em http://localhost:${PORT}`);
+
+/* Middleware de autenticação
+function verificaAutenticacao(req, res, next) {
+  if (req.session.user.token) {
+    return next(); // Usuário autenticado, prossiga para a rota
+  }
+  req.session.returnTo = req.originalUrl; // Armazena a rota que o usuário tentou acessar
+  res.redirect('/login'); // Redireciona para a página de login
+}*/
+
+//Rotas
+//app.use('/', homeRoutes);
+app.use('/',get_movies);
+
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Servidor da API rodando em http://localhost:${port}`);
 });
