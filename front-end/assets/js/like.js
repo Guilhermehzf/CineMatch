@@ -1,6 +1,6 @@
 async function carregarFilme() {
     try {
-        const resposta = await fetch('http://localhost:8888/movie');
+        const resposta = await fetch('http://localhost:3535/movie');
         const filme = await resposta.json();
     
         console.log(filme); // debug
