@@ -59,6 +59,14 @@ router.post('/post_session', async (req, res) => {
     { _id: sessionDoc._id },
     { $set: { session: JSON.stringify(sessionObj) } }
   );
+  
+  const updatedDoc = await req.db.collection(collectionName).findOne({ _id: sessionDoc._id });
+  const updatedSession = JSON.parse(updatedDoc.session);
+  const users = Object.values(updatedSession.lobby.users);
+
+  // Emitir atualização via WebSocket
+  const io = req.app.get('io'); // se você passar o io no app.js
+  io.to(token).emit('session_users', { users });
 
   res.json({
     message: 'Usuário adicionado à sessão com sucesso.',

@@ -8,6 +8,7 @@ const { Server } = require('socket.io');
 const get_movies = require('./src/get_movies');
 const sessions = require('./src/session');
 
+
 const app = express();
 const server = http.createServer(app); // necessário para socket.io
 const io = new Server(server, {
@@ -24,6 +25,8 @@ const port = 3535;
   methods: ['GET', 'POST'], // Permite métodos GET e POST
   allowedHeaders: ['Content-Type', 'Authorization'], // Permite cabeçalhos específicos
 };*/
+
+app.set('io', io);
 
 //Use o middleware CORS
 app.use(cors());
@@ -70,32 +73,49 @@ const sessionSockets = new Map();
 io.on('connection', (socket) => {
   console.log('🟢 Novo cliente conectado via WebSocket');
 
-  socket.on('join_session', async ({ token }) => {
-    if (!token) return;
-
+  socket.on('join_session', async ({ token, username }) => {
+    if (!token || !username) return;
+  
     const db = await connectToDatabase();
     const collection = db.collection(process.env.session_table);
     const sessionDoc = await collection.findOne({
       session: { $regex: `"token":"${token}"` }
     });
-
+  
     if (!sessionDoc) {
       socket.emit('session_error', { message: 'Sessão não encontrada.' });
       return;
     }
-
+  
     const sessionObj = JSON.parse(sessionDoc.session);
-
-    socket.join(token); // adiciona à "sala" da sessão no WebSocket
-
-    // Armazena sockets conectados
+  
+    // Verifica se o username já está na lista
+    const existingUsers = Object.values(sessionObj.lobby.users);
+    if (!existingUsers.includes(username)) {
+      const nextId = (Math.max(0, ...Object.keys(sessionObj.lobby.users).map(Number)) + 1).toString();
+      sessionObj.lobby.users[nextId] = username;
+  
+      // Atualiza no banco
+      await collection.updateOne(
+        { _id: sessionDoc._id },
+        { $set: { session: JSON.stringify(sessionObj) } }
+      );
+    }
+  
+    socket.join(token); // adiciona à sala da sessão
+  
+    // Armazena o socket na sessão
     if (!sessionSockets.has(token)) {
       sessionSockets.set(token, new Set());
     }
     sessionSockets.get(token).add(socket);
-
-    // Envia lista de usuários para todos na sala
-    const users = Object.values(sessionObj.lobby.users);
+  
+    // Obtém a versão atualizada da sessão
+    const updatedDoc = await collection.findOne({ _id: sessionDoc._id });
+    const updatedSession = JSON.parse(updatedDoc.session);
+    const users = Object.values(updatedSession.lobby.users);
+  
+    // Emite a nova lista para todos conectados
     io.to(token).emit('session_users', { users });
   });
 
