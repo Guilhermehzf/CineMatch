@@ -10,7 +10,12 @@ const collectionName = process.env.session_table;
 router.get('/get_session', async (req, res) => {
   const response = await axios.get('http://localhost:3535/movie');
   const titulo_movie = response.data.title;
-  const sessionToken = titulo_movie.replace(/ /g, "-");
+  const sessionToken = titulo_movie.normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-zA-Z0-9 ]/g, '')
+  .replace(/ /g, '-')
+  .toLowerCase();
+
   const user = req.query.user;
   if (!user) {
     return res.status(400).json({ error: 'Usuário não fornecido.' });
@@ -31,7 +36,6 @@ router.get('/get_session', async (req, res) => {
 // POST: recebe user e token via JSON
 router.post('/post_session', async (req, res) => {
   const { user, token } = req.body;
-
   if (!user || !token) {
     return res.status(400).json({ error: 'User ou token ausente.' });
   }

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/lobby.css">
     <title>CineMatch</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     
 </head>
 <body>
@@ -15,13 +16,11 @@
         <h1>Codigo da sua sessão</h1>
         <h3></h3>
         <div class="container-lista">
-    <ul>
-
-    </ul>
-</div>
-
-        
+            <ul id="user-list">
+            </ul>
+        </div>
         <button>Comessar sessão</button>
     </div>
 </body>
+<script src="../assets/js/web_socket_lobby.js"></script>
 </html>

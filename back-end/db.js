@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const MongoStore = require('connect-mongo');
 
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb://192.168.0.102:27017';
 const dbName = 'CineMatch';
 
 let client;

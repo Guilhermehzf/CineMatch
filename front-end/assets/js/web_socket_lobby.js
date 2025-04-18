@@ -1,30 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Cliente WebSocket</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-    }
-    #user-list {
-      margin-top: 1rem;
-      padding: 0;
-      list-style-type: none;
-    }
-    #user-list li {
-      padding: 4px 0;
-    }
-  </style>
-</head>
-<body>
-  <h2>Teste WebSocket</h2>
-  <p><strong>Usuários na sessão:</strong></p>
-  <ul id="user-list"></ul>
-
-  <script>
     // Recupera os parâmetros da URL
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
@@ -46,6 +19,7 @@
 
     socket.on('session_users', (data) => {
       console.log('👥 Lista atualizada de usuários:', data.users);
+      document.querySelector('h3').textContent = token;
 
       const userList = document.getElementById('user-list');
       userList.innerHTML = ''; // Limpa a lista antes de atualizar
@@ -64,6 +38,3 @@
     socket.on('disconnect', () => {
       console.log('⚠️ Desconectado do servidor');
     });
-  </script>
-</body>
-</html>

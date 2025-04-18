@@ -8,16 +8,16 @@
     <title>CineMatch</title>
 </head>
 <body>
-    <form id="entry_lobby">
+    <form id="create_lobby" autocomplete="off">
         <div class="container">
-            <img src="../assets/img/heart_home.svg" alt="">
+            <img src="../assets/img/heart_home.svg" alt="Logo Coração">
             <h1>Entrar na sessão</h1>
-            <input type="text" placeholder="Nick" id="name">
-            <input type="text" placeholder="Pin" id="token">
+            <input type="text" placeholder="Nick" id="name" name="name" required maxlength="30">
             <button type="submit">Entrar na sessão</button>
         </div>
     </form>
 
-    <script src="../assets/js/entry_lobby.js"></script>
+    <!-- Importa o JS -->
+    <script src="../assets/js/create_lobby.js"></script>
 </body>
 </html>
