@@ -9,8 +9,8 @@ async function carregarFilme() {
         document.querySelector('.photo-img').alt = filme.title;
         document.querySelector('.photo-name-and-age h2').textContent = filme.title;
         document.querySelector('.photo-bio a').href = filme.tmdb_url;
-        document.querySelector('.photo-bio').innerHTML += `
-        <span>${filme.year}</span> <span style="margin-left: 10px">${filme.rating}</span>`;
+        document.querySelector('.nota').textContent = 'Nota: ' + filme.rating;
+        document.querySelector('.year').textContent = filme.year;
     } catch (erro) {
         console.error('Erro ao carregar o filme:', erro);
     }
