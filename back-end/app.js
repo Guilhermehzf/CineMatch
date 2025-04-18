@@ -9,7 +9,7 @@ const get_movies = require('./src/get_movies');
 const sessions = require('./src/session');
 
 const app = express();
-const server = http.createServer(app); // necessário para socket.io
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -19,15 +19,8 @@ const io = new Server(server, {
 
 const port = 3535;
 
-/*const corsOptions = {
-  origin: 'localhost', // Permite somente o frontend em localhost:80
-  methods: ['GET', 'POST'], // Permite métodos GET e POST
-  allowedHeaders: ['Content-Type', 'Authorization'], // Permite cabeçalhos específicos
-};*/
-
-//Use o middleware CORS
+app.set('io', io);
 app.use(cors());
-
 app.use(express.json());
 
 app.use(
@@ -49,18 +42,7 @@ app.use(async (req, res, next) => {
   }
 });
 
-
-/* Middleware de autenticação
-function verificaAutenticacao(req, res, next) {
-  if (req.session.user.token) {
-    return next(); // Usuário autenticado, prossiga para a rota
-  }
-  req.session.returnTo = req.originalUrl; // Armazena a rota que o usuário tentou acessar
-  res.redirect('/login'); // Redireciona para a página de login
-}*/
-
-//Rotas
-//app.use('/', homeRoutes);
+// Rotas
 app.use('/', get_movies);
 app.use('/', sessions);
 
@@ -70,8 +52,8 @@ const sessionSockets = new Map();
 io.on('connection', (socket) => {
   console.log('🟢 Novo cliente conectado via WebSocket');
 
-  socket.on('join_session', async ({ token }) => {
-    if (!token) return;
+  socket.on('join_session', async ({ token, username }) => {
+    if (!token || !username) return;
 
     const db = await connectToDatabase();
     const collection = db.collection(process.env.session_table);
@@ -85,18 +67,24 @@ io.on('connection', (socket) => {
     }
 
     const sessionObj = JSON.parse(sessionDoc.session);
+    const existingUsers = Object.values(sessionObj.lobby.users);
 
-    socket.join(token); // adiciona à "sala" da sessão no WebSocket
+    // 🔒 Só permite usuários já existentes
+    if (!existingUsers.includes(username)) {
+      socket.emit('session_error', { message: 'Usuário não autorizado para esta sessão.' });
+      return;
+    }
 
-    // Armazena sockets conectados
+    socket.join(token); // adiciona à sala da sessão
+
+    // Armazena o socket na sessão
     if (!sessionSockets.has(token)) {
       sessionSockets.set(token, new Set());
     }
     sessionSockets.get(token).add(socket);
 
-    // Envia lista de usuários para todos na sala
-    const users = Object.values(sessionObj.lobby.users);
-    io.to(token).emit('session_users', { users });
+    // Emite a lista atual de usuários
+    io.to(token).emit('session_users', { users: existingUsers });
   });
 
   socket.on('disconnect', () => {
