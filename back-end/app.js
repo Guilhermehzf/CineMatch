@@ -47,7 +47,9 @@ app.use('/', get_movies);
 app.use('/', sessions);
 
 // Mapa de sessões para sockets conectados
+// Mapa de sessões para sockets conectados
 const sessionSockets = new Map();
+const sessionStarted = new Map(); // Armazenar o estado da sessão (se foi iniciada)
 
 io.on('connection', (socket) => {
   console.log('🟢 Novo cliente conectado via WebSocket');
@@ -83,8 +85,29 @@ io.on('connection', (socket) => {
     }
     sessionSockets.get(token).add(socket);
 
-    // Emite a lista atual de usuários
-    io.to(token).emit('session_users', { users: existingUsers });
+    // Verifica se a sessão já foi iniciada
+    if (sessionStarted.get(token)) {
+      socket.emit('redirect_to_like'); // Redireciona para o like.html
+    } else {
+      // Emite a lista atual de usuários se a sessão ainda não foi iniciada
+      io.to(token).emit('session_users', { users: existingUsers });
+    }
+  });
+
+  // Lidar com a ação de like/dislike
+  socket.on('movie_action', async ({ token, username, action }) => {
+    console.log(`Usuário ${username} deu ${action} no filme da sessão ${token}`);
+    // Aqui você pode armazenar no banco de dados ou realizar alguma lógica
+    // Emitir para todos os usuários da sessão para atualizar o estado do filme
+    io.to(token).emit('movie_action_received', { username, action });
+  });
+
+  socket.on('start_session', ({ token }) => {
+    // Marca a sessão como iniciada
+    sessionStarted.set(token, true);
+
+    // Redireciona todos os usuários para o like.html
+    io.to(token).emit('redirect_to_like');
   });
 
   socket.on('disconnect', () => {

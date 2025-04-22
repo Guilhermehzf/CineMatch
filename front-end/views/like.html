@@ -1,62 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="stylesheet" href="../assets/css/like.css" />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
-		rel="stylesheet"
-	/>
-	<script
-		src="https://kit.fontawesome.com/5394ea2044.js"
-		crossorigin="anonymous"
-	></script>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+	<script src="https://kit.fontawesome.com/5394ea2044.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 	<title>Tinder</title>
 </head>
 
 <body>
-	<nav class="navbar">
-		<img src="../assets/img/heart_home.svg" alt="logo" />
-		<button class="action">
-				<i class="fa-solid fa-right-from-bracket"></i>
-		</button>
-	</nav>
+	<!-- TELA DE LOADING -->
+	<div id="loading">
+		<div class="loader"></div>
+	</div>
 
-	<div class="photo-and-actions">
-		<div class="photo">
-			<img src="" alt="foto" class="photo-img"/>
-			<div class="photo-text">
-				<div class="photo-name-and-age">
-					<h2></h2>
-					<h2></h2>
-					<div class="photo-bio">
-						<a href="TMDB_URL"><i class="fa-solid fa-circle-info" style="color: #f6f6f6;"></i></a>
+	<!-- TELA DE ERRO (caso falhe o fetch) -->
+	<div id="erro" style="display: none; text-align: center; margin-top: 2rem;">
+		<h2>Erro ao carregar o filme.</h2>
+	</div>
+
+	<!-- CONTEÚDO PRINCIPAL -->
+	<div id="conteudo" style="display: none;">
+		<nav class="navbar">
+			<img src="../assets/img/heart_home.svg" alt="logo" />
+			<button class="action" id="logout">
+				<i class="fa-solid fa-right-from-bracket"></i>
+			</button>
+		</nav>
+
+		<div class="photo-and-actions">
+			<div class="photo">
+				<img src="" alt="foto" class="photo-img" />
+				<div class="photo-text">
+					<div class="photo-name-and-age">
+						<h2></h2>
+						<h2></h2>
+						<div class="photo-bio">
+							<a href="TMDB_URL"><i class="fa-solid fa-circle-info" style="color: #f6f6f6;"></i></a>
+						</div>
+					</div>
+					<div class="notas">
+						<h4 class="year"></h4>
+						<h4 class="nota"></h4>
 					</div>
 				</div>
-				<div class="notas">
-					<h4 class="year"></h4>
-					<h4 class="nota"></h4>
-				</div>	
+			</div>
+
+			<!-- AÇÕES -->
+			<div class="actions">
+				<form class="action-form" id="action_dislike">
+					<button class="action_dislike" type="submit" id="dislike"><i class="fas fa-times"></i></button>
+				</form>
+				<form class="action-form" id="action_neutral">
+					<button class="action_neutral" type="submit" id="neutral"><i class="fa-solid fa-eye"></i></button>
+				</form>
+				<form class="action-form" id="action_like">
+					<button class="action_like" type="submit" id="like"><i class="fas fa-heart"></i></button>
+				</form>
 			</div>
 		</div>
-
-		<!-- AÇÕES -->
-		<div class="actions">
-			
-			<button class="action">
-				<i class="fas fa-times"></i>
-			</button>
-			<button class="action">
-				<i class="fa-solid fa-eye"></i>
-			</button>
-			<button class="action">
-				<i class="fas fa-heart"></i>
-			</button>
-			
-		</div>
 	</div>
+
+	<script src="../assets/js/like.js"></script>
 </body>
-<script src="../assets/js/like.js"></script>
 </html>
