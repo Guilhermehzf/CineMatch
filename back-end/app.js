@@ -51,6 +51,7 @@ const sessionSockets = new Map(); // Mapa de sessões para sockets conectados
 const sessionStarted = new Map(); // Armazena se a sessão foi iniciada
 const sessionLikedGenres = new Map(); // Armazena os gêneros curtidos por sessão
 const sessionLikeMovie = new Map(); //Armazena os filmes curtidos por sessão
+const sessionDislikedGenres = new Map();
 
 
 io.on('connection', (socket) => {
@@ -107,14 +108,15 @@ io.on('connection', (socket) => {
   // Lidar com a ação de like/dislike
   socket.on('movie_action', async ({ token, username, action, genres, movie }) => {
     if (action === 'like' && Array.isArray(genres) && movie) {
+      //Inicializa o set dos generos curtidos, se necessário
       if (!sessionLikedGenres.has(token)) {
         sessionLikedGenres.set(token, new Set());
       }
 
-    // Inicializa o set de filmes curtidos, se necessário
-    if (!sessionLikeMovie.has(token)) {
-      sessionLikeMovie.set(token, []);
-    }
+      // Inicializa o set de filmes curtidos, se necessário
+      if (!sessionLikeMovie.has(token)) {
+        sessionLikeMovie.set(token, []);
+      }
 
       const genreSet = sessionLikedGenres.get(token);
       const movielist = sessionLikeMovie.get(token);
@@ -128,9 +130,21 @@ io.on('connection', (socket) => {
       io.to(token).emit('session_genres', Array.from(genreSet));
       io.to(token).emit('movie_ids', movielist);
     }
+    if(action === 'dislike' && Array.isArray(genres)){
 
-    // Envia info da ação para todos da sala (se precisar)
-    io.to(token).emit('movie_action_received', { username, action });
+      //Inicializa o set dos generos discurtidos, se necessário
+      if (!sessionDislikedGenres.has(token)) {
+        sessionDislikedGenres.set(token, new Set());
+      }
+
+      const DislikegenreSet = sessionDislikedGenres.get(token);
+      // Adiciona os novos IDs ao Set (evita duplicatas)
+      genres.forEach(id => DislikegenreSet.add(id));
+
+      // Emite lista atualizada para todos da sessão
+      io.to(token).emit('session_dislike_genres', Array.from(DislikegenreSet));
+    }
+
   });
 
   socket.on('disconnect', () => {

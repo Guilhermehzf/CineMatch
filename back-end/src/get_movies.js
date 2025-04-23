@@ -9,36 +9,54 @@ const router = express.Router();
 router.get('/movie', async (req, res) => {
   const apiKey = process.env.TMDB_API_KEY;
 
-  const genre = req.query.genre?.split(',').map(Number);     // array de ids
-  const exclude = req.query.exclude?.split(',').map(Number); // array de ids
+  const genre = req.query.genre?.split(',').map(Number);
+  const exclude = req.query.exclude?.split(',').map(Number);
+  const exclude_genre = req.query.exclude_genre?.split(',').map(Number);
   const region = req.query.region;
   const year = req.query.year;
 
   try {
-    const randomPage = Math.floor(Math.random() * 10) + 1;
+    let filtered = [];
+    let attempt = 0;
+    const maxAttempts = 2;
+    let lastResort = false;
 
-    const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-      httpsAgent: agent,
-      params: {
-        api_key: apiKey,
-        language: 'pt-BR',
-        page: randomPage,
-        region: region || undefined,
-        sort_by: 'popularity.desc'
+    while (filtered.length === 0 && attempt <= maxAttempts) {
+      const randomPage = Math.floor(Math.random() * 10) + 1;
+
+      const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
+        httpsAgent: agent,
+        params: {
+          api_key: apiKey,
+          language: 'pt-BR',
+          page: randomPage,
+          region: lastResort ? undefined : region || undefined,
+          sort_by: 'popularity.desc'
+        }
+      });
+
+      const movies = response.data.results;
+
+      filtered = movies.filter(movie => {
+        const matchesGenre = lastResort || !genre || genre.some(g => movie.genre_ids.includes(g));
+        const matchesYear = lastResort || !year || movie.release_date?.startsWith(year);
+        const notExcluded = !exclude || !exclude.includes(movie.id);
+        const notExcludedGenre = lastResort || !exclude_genre || !movie.genre_ids.some(id => exclude_genre.includes(id));
+        return matchesGenre && matchesYear && notExcluded && notExcludedGenre;
+      });
+
+      attempt++;
+
+      // Se chegarmos na última tentativa e ainda não achamos nada, força uma tentativa sem os filtros opcionais
+      if (attempt === maxAttempts && filtered.length === 0) {
+        console.warn('⚠️ Nenhum filme encontrado com os filtros. Tentando sem filtros (mantendo apenas exclude)...');
+        lastResort = true;
+        attempt = maxAttempts; // vai sair do loop na próxima rodada
       }
-    });
-
-    let movies = response.data.results;
-
-    let filtered = movies.filter(movie => {
-      let matchesGenre = !genre || genre.some(g => movie.genre_ids.includes(g));
-      let matchesYear = !year || movie.release_date?.startsWith(year);
-      let notExcluded = !exclude || !exclude.includes(movie.id);
-      return matchesGenre && matchesYear && notExcluded;
-    });
+    }
 
     if (filtered.length === 0) {
-      filtered = movies;
+      return res.status(404).json({ error: 'Nenhum filme encontrado com os filtros aplicados.' });
     }
 
     const randomMovie = filtered[Math.floor(Math.random() * filtered.length)];
@@ -56,7 +74,6 @@ router.get('/movie', async (req, res) => {
     async function syncGenresIfEmpty(req) {
       const collection = req.db.collection(process.env.genre_movies_table);
       const count = await collection.countDocuments();
-
       if (count === 0) {
         const genres_ids = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
           params: {
@@ -67,19 +84,18 @@ router.get('/movie', async (req, res) => {
         await collection.insertMany(genres_ids.data.genres);
       }
 
-      return await collection.find().toArray(); // retorna os gêneros
+      return await collection.find().toArray();
     }
 
     const genresFromDb = await syncGenresIfEmpty(req);
 
-    let genre_list = [];
-    for (const id of randomMovie.genre_ids) {
-      const genero = genresFromDb.find(g => g.id === id);
-      if (genero) {
-        delete genero._id;
-        genre_list.push(genero);
+    const genre_list = randomMovie.genre_ids.map(id => {
+      const g = genresFromDb.find(gen => gen.id === id);
+      if (g) {
+        const { _id, ...rest } = g;
+        return rest;
       }
-    }
+    }).filter(Boolean);
 
     res.json({
       id: randomMovie.id,
@@ -96,7 +112,7 @@ router.get('/movie', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Erro ao buscar filmes:', err.message);
+    console.error('❌ Erro ao buscar filmes:', err.message);
     res.status(500).json({ error: 'Erro interno ao buscar filmes. Tente novamente mais tarde.' });
   }
 });

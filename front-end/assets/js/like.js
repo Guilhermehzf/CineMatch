@@ -1,10 +1,14 @@
+const { move } = require("../../../back-end/src/get_movies");
+
 // Recupera os parâmetros da URL
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token');
 const username = params.get('user');
 let filme = null;
 let list_gener = null;
+let list_dislike_gener = null;
 let movie_ids = [];
+let list_movies = null;
 
 // Cria a conexão WebSocket
 const socket = io('ws://localhost:3535', {
@@ -24,8 +28,13 @@ socket.on('session_genres', (generos) => {
   list_gener = generos; 
 });
 
+socket.on('session_dislike_genres', (generos) => {
+  list_dislike_gener = generos; 
+});
+
 socket.on('movie_ids', (movie)=>{
   console.log(movie);
+  console.log('metch')
 })
 
 // Tratamento de erro caso o usuário não esteja na lista
@@ -51,6 +60,9 @@ async function carregarFilme() {
     } else {
       let api_url = 'http://localhost:3535/movie?genre='
       api_url += list_gener.join(',');
+      if(list_dislike_gener != null){
+        api_url += `&exclude_genre=${list_dislike_gener.join(',')}`;
+      }
       api_url += `&exclude=${movie_ids.join(',')}`;
       console.log(api_url);
       resposta = await fetch(api_url);
@@ -105,7 +117,8 @@ document.getElementById('action_neutral').addEventListener('submit', (e) => {
 
 document.getElementById('action_dislike').addEventListener('submit', (e) => {
   e.preventDefault();
-  socket.emit('movie_action', { token, username, action: 'dislike' });
+  const generosDoFilme = filme.genres.map(g => g.id); // só IDs
+  socket.emit('movie_action', { token, username, action: 'dislike', genres: generosDoFilme});
   movie_ids.push(filme.id);
   carregarFilme();
 });
