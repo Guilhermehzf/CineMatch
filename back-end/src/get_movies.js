@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const https = require('https');
+const e = require('express');
 
 const agent = new https.Agent({ family: 4 });
 const router = express.Router();
@@ -48,9 +49,22 @@ router.get('/movie', async (req, res) => {
 
     const providers = providersResponse.data.results?.BR?.flatrate || [];
 
+    let genre_list = [];
+    const genres_ids = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
+      params: {
+        api_key: apiKey,
+        language: 'pt-BR'
+      }
+    });
+    for(const element of randomMovie.genre_ids){
+      const genero = genres_ids.data.genres.find(g => g.id === element);
+      genre_list.push(genero.name);
+    }
+
     res.json({
       title: randomMovie.title,
       poster: `https://image.tmdb.org/t/p/w500${randomMovie.poster_path}`,
+      genres: genre_list,
       year: randomMovie.release_date?.split('-')[0] || 'N/A',
       rating: randomMovie.vote_average,
       tmdb_url: `https://www.themoviedb.org/movie/${randomMovie.id}`,
