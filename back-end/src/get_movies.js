@@ -2,14 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const https = require('https');
-const e = require('express');
 
 const agent = new https.Agent({ family: 4 });
 const router = express.Router();
 
 router.get('/movie', async (req, res) => {
   const apiKey = process.env.TMDB_API_KEY;
-  const { genre, region, year } = req.query;
+
+  const genre = req.query.genre?.split(',').map(Number);     // array de ids
+  const exclude = req.query.exclude?.split(',').map(Number); // array de ids
+  const region = req.query.region;
+  const year = req.query.year;
 
   try {
     const randomPage = Math.floor(Math.random() * 10) + 1;
@@ -28,9 +31,10 @@ router.get('/movie', async (req, res) => {
     let movies = response.data.results;
 
     let filtered = movies.filter(movie => {
-      let matchesGenre = !genre || movie.genre_ids.includes(Number(genre));
+      let matchesGenre = !genre || genre.some(g => movie.genre_ids.includes(g));
       let matchesYear = !year || movie.release_date?.startsWith(year);
-      return matchesGenre && matchesYear;
+      let notExcluded = !exclude || !exclude.includes(movie.id);
+      return matchesGenre && matchesYear && notExcluded;
     });
 
     if (filtered.length === 0) {
@@ -49,19 +53,36 @@ router.get('/movie', async (req, res) => {
 
     const providers = providersResponse.data.results?.BR?.flatrate || [];
 
-    let genre_list = [];
-    const genres_ids = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
-      params: {
-        api_key: apiKey,
-        language: 'pt-BR'
+    async function syncGenresIfEmpty(req) {
+      const collection = req.db.collection(process.env.genre_movies_table);
+      const count = await collection.countDocuments();
+
+      if (count === 0) {
+        const genres_ids = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
+          params: {
+            api_key: process.env.TMDB_API_KEY,
+            language: 'pt-BR'
+          }
+        });
+        await collection.insertMany(genres_ids.data.genres);
       }
-    });
-    for(const element of randomMovie.genre_ids){
-      const genero = genres_ids.data.genres.find(g => g.id === element);
-      genre_list.push(genero.name);
+
+      return await collection.find().toArray(); // retorna os gêneros
+    }
+
+    const genresFromDb = await syncGenresIfEmpty(req);
+
+    let genre_list = [];
+    for (const id of randomMovie.genre_ids) {
+      const genero = genresFromDb.find(g => g.id === id);
+      if (genero) {
+        delete genero._id;
+        genre_list.push(genero);
+      }
     }
 
     res.json({
+      id: randomMovie.id,
       title: randomMovie.title,
       poster: `https://image.tmdb.org/t/p/w500${randomMovie.poster_path}`,
       genres: genre_list,

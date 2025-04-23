@@ -46,10 +46,12 @@ app.use(async (req, res, next) => {
 app.use('/', get_movies);
 app.use('/', sessions);
 
-// Mapa de sessões para sockets conectados
-// Mapa de sessões para sockets conectados
-const sessionSockets = new Map();
-const sessionStarted = new Map(); // Armazenar o estado da sessão (se foi iniciada)
+
+const sessionSockets = new Map(); // Mapa de sessões para sockets conectados
+const sessionStarted = new Map(); // Armazena se a sessão foi iniciada
+const sessionLikedGenres = new Map(); // Armazena os gêneros curtidos por sessão
+const sessionLikeMovie = new Map(); //Armazena os filmes curtidos por sessão
+
 
 io.on('connection', (socket) => {
   console.log('🟢 Novo cliente conectado via WebSocket');
@@ -94,20 +96,41 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Lidar com a ação de like/dislike
-  socket.on('movie_action', async ({ token, username, action }) => {
-    console.log(`Usuário ${username} deu ${action} no filme da sessão ${token}`);
-    // Aqui você pode armazenar no banco de dados ou realizar alguma lógica
-    // Emitir para todos os usuários da sessão para atualizar o estado do filme
-    io.to(token).emit('movie_action_received', { username, action });
-  });
-
   socket.on('start_session', ({ token }) => {
     // Marca a sessão como iniciada
     sessionStarted.set(token, true);
 
     // Redireciona todos os usuários para o like.html
     io.to(token).emit('redirect_to_like');
+  });
+
+  // Lidar com a ação de like/dislike
+  socket.on('movie_action', async ({ token, username, action, genres, movie }) => {
+    if (action === 'like' && Array.isArray(genres) && movie) {
+      if (!sessionLikedGenres.has(token)) {
+        sessionLikedGenres.set(token, new Set());
+      }
+
+    // Inicializa o set de filmes curtidos, se necessário
+    if (!sessionLikeMovie.has(token)) {
+      sessionLikeMovie.set(token, []);
+    }
+
+      const genreSet = sessionLikedGenres.get(token);
+      const movielist = sessionLikeMovie.get(token);
+
+      movielist.push(movie);
+
+      // Adiciona os novos IDs ao Set (evita duplicatas)
+      genres.forEach(id => genreSet.add(id));
+
+      // Emite lista atualizada para todos da sessão
+      io.to(token).emit('session_genres', Array.from(genreSet));
+      io.to(token).emit('movie_ids', movielist);
+    }
+
+    // Envia info da ação para todos da sala (se precisar)
+    io.to(token).emit('movie_action_received', { username, action });
   });
 
   socket.on('disconnect', () => {

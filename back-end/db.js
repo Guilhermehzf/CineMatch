@@ -1,8 +1,9 @@
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 const MongoStore = require('connect-mongo');
 
-const url = 'mongodb://localhost:27017';
-const dbName = 'CineMatch';
+const url = process.env.dbUrl;
+const dbName = process.env.dbName;
 
 let client;
 
