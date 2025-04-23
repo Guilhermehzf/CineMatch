@@ -1,5 +1,3 @@
-const { move } = require("../../../back-end/src/get_movies");
-
 // Recupera os parâmetros da URL
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token');
@@ -34,7 +32,6 @@ socket.on('session_dislike_genres', (generos) => {
 
 socket.on('movie_ids', (movie)=>{
   console.log(movie);
-  console.log('metch')
 })
 
 // Tratamento de erro caso o usuário não esteja na lista
