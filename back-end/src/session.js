@@ -23,6 +23,7 @@ router.get('/get_session', async (req, res) => {
 
   req.session.lobby = {
     users: { "1": user },
+    qtdusers: 1,
     token: sessionToken
   };
 
@@ -33,7 +34,6 @@ router.get('/get_session', async (req, res) => {
 });
 
 
-// POST: recebe user e token via JSON
 router.post('/post_session', async (req, res) => {
   const { user, token } = req.body;
   if (!user || !token) {
@@ -51,11 +51,12 @@ router.post('/post_session', async (req, res) => {
   const sessionObj = JSON.parse(sessionDoc.session);
 
   if (!sessionObj.lobby) {
-    sessionObj.lobby = { users: {}, token };
+    sessionObj.lobby = { users: {}, token, qtdusers: 0 };
   }
 
   const nextId = Object.keys(sessionObj.lobby.users).length + 1;
   sessionObj.lobby.users[nextId.toString()] = user;
+  sessionObj.lobby.qtdusers = Object.keys(sessionObj.lobby.users).length;
 
   await req.db.collection(collectionName).updateOne(
     { _id: sessionDoc._id },

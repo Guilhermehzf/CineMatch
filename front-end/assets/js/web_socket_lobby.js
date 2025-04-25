@@ -20,13 +20,13 @@ socket.on('connect', () => {
 // Evento de erro de sessão
 socket.on('session_error', (err) => {
   console.error('❌ Erro:', err.message);
-  window.location.href = `http://127.0.0.1:5500/front-end/views/entry_lobby.html`;
+  window.location.href = `http://127.0.0.1:5500/front-end/views/home.html`;
 });
 
 // Desconexão do WebSocket
 socket.on('disconnect', () => {
   console.log('⚠️ Desconectado do servidor');
-  window.location.href = `http://127.0.0.1:5500/front-end/views/create_lobby.html`;
+  window.location.href = `http://127.0.0.1:5500/front-end/views/home.html`;
 });
 
 socket.on('session_users', (data) => {

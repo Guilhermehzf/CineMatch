@@ -121,6 +121,14 @@ io.on('connection', (socket) => {
       const genreSet = sessionLikedGenres.get(token);
       const movielist = sessionLikeMovie.get(token);
 
+      const db = await connectToDatabase();
+      const collection = db.collection(process.env.session_table);
+      const sessionDoc = await collection.findOne({
+        session: { $regex: `"token":"${token}"` }
+      });
+      const sessionObj = JSON.parse(sessionDoc.session);
+      const numUsers = sessionObj.lobby.qtdusers;
+
       movielist.push(movie);
 
       // Adiciona os novos IDs ao Set (evita duplicatas)
@@ -128,7 +136,7 @@ io.on('connection', (socket) => {
 
       // Emite lista atualizada para todos da sessão
       io.to(token).emit('session_genres', Array.from(genreSet));
-      io.to(token).emit('movie_ids', movielist);
+      io.to(token).emit('movie_ids_and_qtdusers', movielist, numUsers);
     }
     if(action === 'dislike' && Array.isArray(genres)){
 

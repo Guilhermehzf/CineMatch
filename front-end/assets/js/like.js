@@ -30,16 +30,34 @@ socket.on('session_dislike_genres', (generos) => {
   list_dislike_gener = generos; 
 });
 
-socket.on('movie_ids', (movie)=>{
-  console.log(movie);
-})
+socket.on('movie_ids_and_qtdusers', (movie, numUsers)=>{
+  console.log("ids filmes:", movie);
+  console.log('qtdusers: ', numUsers);
+  calcPercent(movie, numUsers);
+});
 
 // Tratamento de erro caso o usuário não esteja na lista
 socket.on('session_error', (err) => {
   console.error('❌ Erro:', err.message);
   alert('Você não tem permissão para acessar essa sessão.');
-  window.location.href = 'http://127.0.0.1:5500/front-end/views/entry_lobby.html'; // Redireciona para entry_lobby
+  window.location.href = 'http://127.0.0.1:5500/front-end/views/home.html'; // Redireciona para entry_lobby
 });
+
+//função calcula match
+async function calcPercent(movie, qtdusers) {
+  const counts = {};
+  const porcentagem = (60 * qtdusers) / 100;
+
+  movie.forEach(num => {
+    // Atualiza o contador corretamente
+    counts[num] = (counts[num] || 0) + 1;
+
+    // Verifica se já atingiu ou passou a porcentagem mínima
+    if (counts[num] >= porcentagem) {
+      window.location.href = `http://127.0.0.1:5500/front-end/views/match.html?movie_id=${num}`;
+    }
+  });
+}
 
 // Função para carregar filme
 async function carregarFilme() {
@@ -119,6 +137,11 @@ document.getElementById('action_dislike').addEventListener('submit', (e) => {
   movie_ids.push(filme.id);
   carregarFilme();
 });
+
+/*document.getElementById('action_logout').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  socket.emit('');
+});*/
 
 document.addEventListener('DOMContentLoaded', () => {
   carregarFilme();

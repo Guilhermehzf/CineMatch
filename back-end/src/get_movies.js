@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const https = require('https');
+const { exec } = require('child_process'); 
 
 const agent = new https.Agent({ family: 4 });
 const router = express.Router();
@@ -114,6 +115,133 @@ router.get('/movie', async (req, res) => {
   } catch (err) {
     console.error('❌ Erro ao buscar filmes:', err.message);
     res.status(500).json({ error: 'Erro interno ao buscar filmes. Tente novamente mais tarde.' });
+  }
+});
+
+router.get('/movie_match', async (req, res) => {
+  const movie_id = req.query.movie_id;
+  const apiKey = process.env.TMDB_API_KEY;
+
+  if (!movie_id) {
+    return res.status(400).json({ error: 'Parâmetro movie_id é obrigatório.' });
+  }
+
+  try {
+    // Busca os detalhes do filme
+    const movieResponse = await axios.get(
+      `https://api.themoviedb.org/3/movie/${movie_id}`,
+      {
+        httpsAgent: agent,
+        params: {
+          api_key: apiKey,
+          language: 'pt-BR'
+        }
+      }
+    );
+
+    const movie = movieResponse.data;
+
+    // Busca provedores de streaming
+    const providersResponse = await axios.get(
+      `https://api.themoviedb.org/3/movie/${movie_id}/watch/providers`,
+      {
+        httpsAgent: agent,
+        params: { api_key: apiKey }
+      }
+    );
+
+    const providers = providersResponse.data.results?.BR?.flatrate || [];
+
+    // Sincroniza gêneros com o banco se ainda não tiver
+    async function syncGenresIfEmpty(req) {
+      const collection = req.db.collection(process.env.genre_movies_table);
+      const count = await collection.countDocuments();
+      if (count === 0) {
+        const genres_ids = await axios.get('https://api.themoviedb.org/3/genre/movie/list', {
+          params: {
+            api_key: apiKey,
+            language: 'pt-BR'
+          }
+        });
+        await collection.insertMany(genres_ids.data.genres);
+      }
+
+      return await collection.find().toArray();
+    }
+
+    const genresFromDb = await syncGenresIfEmpty(req);
+
+    // Match dos gêneros do filme com os nomes no banco
+    const genre_list = movie.genres.map(g => {
+      const found = genresFromDb.find(gen => gen.id === g.id);
+      if (found) {
+        const { _id, ...rest } = found;
+        return rest;
+      } else {
+        return g;
+      }
+    });
+
+    res.json({
+      id: movie.id,
+      title: movie.title,
+      poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      genres: genre_list,
+      year: movie.release_date?.split('-')[0] || 'N/A',
+      rating: movie.vote_average,
+      tmdb_url: `https://www.themoviedb.org/movie/${movie.id}`,
+      providers: providers.map(p => ({
+        name: p.provider_name,
+        logo: `https://image.tmdb.org/t/p/w45${p.logo_path}`
+      }))
+    });
+
+  } catch (err) {
+    console.error('❌ Erro ao buscar filme:', err.message);
+    res.status(500).json({ error: 'Erro interno ao buscar filme. Tente novamente mais tarde.' });
+  }
+});
+
+// Função para chamar o script Python
+function getStreamingLinksFromPython(movie_id) {
+  return new Promise((resolve, reject) => {
+    const path = `"${process.env.path_get_providers_link}"`;
+    exec(`python3 ${path} ${movie_id}`, (err, stdout, stderr) => {
+      if (err) {
+        reject(`Erro ao executar o script Python: ${stderr}`);
+        return;
+      }
+      try {
+        // Parseando a saída JSON do Python
+        const data = JSON.parse(stdout);
+        resolve(data);
+      } catch (e) {
+        reject('Erro ao processar a resposta do script Python.');
+      }
+    });
+  });
+}
+
+// Rota para buscar links de streaming para um filme específico
+router.get('/movie_streaming_links', async (req, res) => {
+  const movie_id = req.query.movie_id;
+
+  if (!movie_id) {
+    return res.status(400).json({ error: 'Parâmetro movie_id é obrigatório.' });
+  }
+
+  try {
+    // Chama o script Python para buscar os links de streaming
+    const streamingLinks = await getStreamingLinksFromPython(movie_id);
+
+    if (streamingLinks && streamingLinks.length > 0) {
+      res.json({ movie_id, streaming_links: streamingLinks });
+    } else {
+      res.status(404).json({ error: 'Nenhum link de streaming encontrado.' });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar links de streaming:', error);
+    res.status(500).json({ error: 'Erro interno ao buscar links de streaming.' });
   }
 });
 
