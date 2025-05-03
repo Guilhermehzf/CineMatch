@@ -9,12 +9,12 @@ let movie_ids = [];
 let list_movies = null;
 
 // Cria a conexão WebSocket
-const socket = io('ws://localhost:3535', {
+const socket = io('ws://177.235.191.39:3535', {
   transports: ['websocket']
 });
 
 socket.on('connect', () => {
-  console.log('✅ Conectado:', socket.id);
+  console.log('Conectado:', socket.id);
   // Envia os dados da sessão e usuário
   socket.emit('join_session', {
     token,
@@ -38,15 +38,16 @@ socket.on('movie_ids_and_qtdusers', (movie, numUsers)=>{
 
 // Tratamento de erro caso o usuário não esteja na lista
 socket.on('session_error', (err) => {
-  console.error('❌ Erro:', err.message);
+  console.error('Erro:', err.message);
   alert('Você não tem permissão para acessar essa sessão.');
-  window.location.href = 'http://127.0.0.1:5500/front-end/views/home.html'; // Redireciona para entry_lobby
+  window.location.href = 'http://177.235.191.39:5500/front-end/views/home.html'; // Redireciona para entry_lobby
 });
 
 //função calcula match
 async function calcPercent(movie, qtdusers) {
   const counts = {};
   const porcentagem = (60 * qtdusers) / 100;
+  console.log(porcentagem);
 
   movie.forEach(num => {
     // Atualiza o contador corretamente
@@ -54,9 +55,27 @@ async function calcPercent(movie, qtdusers) {
 
     // Verifica se já atingiu ou passou a porcentagem mínima
     if (counts[num] >= porcentagem) {
-      window.location.href = `http://127.0.0.1:5500/front-end/views/match.html?movie_id=${num}`;
+      console.log(counts[num], porcentagem)
+      window.location.href = `http://177.235.191.39:5500/front-end/views/match.html?movie_id=${num}`;
     }
   });
+}
+
+// Funções para bloquear/desbloquear os botões
+function bloquearBotoes() {
+	document.querySelectorAll('.action-form button').forEach(btn => {
+		btn.disabled = true;
+		const loader = btn.querySelector('.loading_button');
+		if (loader) loader.style.display = 'inline-block';
+	});
+}
+
+function desbloquearBotoes() {
+	document.querySelectorAll('.action-form button').forEach(btn => {
+		btn.disabled = false;
+		const loader = btn.querySelector('.loading_button');
+		if (loader) loader.style.display = 'none';
+	});
 }
 
 // Função para carregar filme
@@ -65,53 +84,52 @@ async function carregarFilme() {
   const erro = document.getElementById('erro');
   const conteudo = document.getElementById('conteudo');
 
+  bloquearBotoes(); // Bloqueia antes de começar a carregar
+
   try {
     let resposta;
-  
+
     if (list_gener == null) {
-      // Chamada simples
-      resposta = await fetch('http://localhost:3535/movie');
-      console.log(resposta);
+      resposta = await fetch('http://177.235.191.39:3535/movie');
     } else {
-      let api_url = 'http://localhost:3535/movie?genre='
-      api_url += list_gener.join(',');
-      if(list_dislike_gener != null){
+      let api_url = 'http://177.235.191.39:3535/movie?genre=' + list_gener.join(',');
+      if (list_dislike_gener != null) {
         api_url += `&exclude_genre=${list_dislike_gener.join(',')}`;
       }
       api_url += `&exclude=${movie_ids.join(',')}`;
-      console.log(api_url);
       resposta = await fetch(api_url);
     }
-  
+
     if (!resposta.ok) {
       throw new Error(`Status: ${resposta.status}`);
     }
-  
+
     filme = await resposta.json();
-  
-    // Atualiza o conteúdo da página com os dados do filme
+
+    // Atualiza a página
     document.querySelector('.photo-img').src = filme.poster;
     document.querySelector('.photo-img').alt = filme.title;
-    document.querySelector('.photo-name-and-age h2').textContent = filme.title;
+    document.querySelector('.photo-name-and-age h2').textContent = filme.title + ' (' + filme.year + ')';
     document.querySelector('.photo-bio a').href = filme.tmdb_url;
+    document.querySelector('.geners').textContent = filme.genres.map(g => g.name).join(', ');
     document.querySelector('.nota').textContent = 'Nota: ' + filme.rating;
-    document.querySelector('.year').textContent = filme.year;
-  
-    // Mostrar conteúdo, esconder loading
+
     loading.style.display = 'none';
     conteudo.style.display = 'block';
   } catch (err) {
     console.error('Erro ao carregar o filme:', err);
     loading.style.display = 'none';
     erro.style.display = 'block';
+  } finally {
+    desbloquearBotoes(); // Libera após carregar (sucesso ou erro)
   }
 }
 
 // Ações do usuário (like/dislike)
 document.getElementById('action_like').addEventListener('submit', (e) => {
   e.preventDefault();
-  const generosDoFilme = filme.genres.map(g => g.id); // só IDs
-
+  bloquearBotoes(); // Bloqueia ao clicar
+  const generosDoFilme = filme.genres.map(g => g.id);
   socket.emit('movie_action', {
     token,
     username,
@@ -125,6 +143,7 @@ document.getElementById('action_like').addEventListener('submit', (e) => {
 
 document.getElementById('action_neutral').addEventListener('submit', (e) => {
   e.preventDefault();
+  bloquearBotoes();
   socket.emit('movie_action', { token, username, action: 'neutral' });
   movie_ids.push(filme.id);
   carregarFilme();
@@ -132,8 +151,9 @@ document.getElementById('action_neutral').addEventListener('submit', (e) => {
 
 document.getElementById('action_dislike').addEventListener('submit', (e) => {
   e.preventDefault();
-  const generosDoFilme = filme.genres.map(g => g.id); // só IDs
-  socket.emit('movie_action', { token, username, action: 'dislike', genres: generosDoFilme});
+  bloquearBotoes();
+  const generosDoFilme = filme.genres.map(g => g.id);
+  socket.emit('movie_action', { token, username, action: 'dislike', genres: generosDoFilme });
   movie_ids.push(filme.id);
   carregarFilme();
 });

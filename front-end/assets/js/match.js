@@ -8,7 +8,7 @@ async function carregarFilme() {
     const conteudo = document.getElementById('conteudo');
     try {
         // Chama a API para obter os detalhes do filme
-        const resposta = await fetch(`http://localhost:3535/movie_match?movie_id=${movie_id}`);
+        const resposta = await fetch(`http://177.235.191.39:3535/movie_match?movie_id=${movie_id}`);
         if (!resposta.ok) {
             throw new Error(`Status: ${resposta.status}`);
         }
@@ -18,16 +18,15 @@ async function carregarFilme() {
         // Atualiza o conteúdo da página com os dados do filme
         document.querySelector('.photo-img').src = filme.poster;
         document.querySelector('.photo-img').alt = filme.title;
-        document.querySelector('.photo-name-and-age h2').textContent = filme.title;
+        document.querySelector('.photo-name-and-age h2').textContent = filme.title+' ('+filme.year+')';
         document.querySelector('.photo-bio a').href = filme.tmdb_url;
         document.querySelector('.nota').textContent = 'Nota: ' + filme.rating;
         document.querySelector('.geners').textContent = filme.genres.map(g => g.name).join(', ');
-        document.querySelector('.year').textContent = filme.year;
-
+        
         // Verifica se o array de providers não está vazio
         if (filme.providers && filme.providers.length > 0) {
             // Chama a nova API para obter os links de streaming
-            const streamingLinksRes = await fetch(`http://localhost:3535/movie_streaming_links?movie_id=${movie_id}`);
+            const streamingLinksRes = await fetch(`http://177.235.191.39:3535/movie_streaming_links?movie_id=${movie_id}`);
             if (!streamingLinksRes.ok) {
                 throw new Error(`Status: ${streamingLinksRes.status}`);
             }

@@ -55,7 +55,7 @@ const sessionDislikedGenres = new Map();
 
 
 io.on('connection', (socket) => {
-  console.log('🟢 Novo cliente conectado via WebSocket');
+  console.log('Novo cliente conectado via WebSocket');
 
   socket.on('join_session', async ({ token, username }) => {
     if (!token || !username) return;
@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
     const sessionObj = JSON.parse(sessionDoc.session);
     const existingUsers = Object.values(sessionObj.lobby.users);
 
-    // 🔒 Só permite usuários já existentes
+    // Só permite usuários já existentes
     if (!existingUsers.includes(username)) {
       socket.emit('session_error', { message: 'Usuário não autorizado para esta sessão.' });
       return;
@@ -166,5 +166,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor da API rodando em http://localhost:${port}`);
+  console.log(`Servidor da API rodando em http://177.235.191.39:${port}`);
 });
