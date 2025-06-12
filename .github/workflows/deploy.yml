@@ -13,30 +13,20 @@ jobs:
       - name: 1. Baixa o código do repositório
         uses: actions/checkout@v4
 
-      - name: 1.1. Configura SSH e aceita host key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
       - name: 2. Sincroniza o back-end (excluindo .env e node_modules)
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --delete --exclude
+          switches: -avzr --delete --exclude=node_modules --exclude=.env -e "ssh -o StrictHostKeyChecking=no"
           path: back-end/
           remote_path: /home/root-ghz/CineMatch/
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          exclude: |
-            node_modules/
-            .env
 
       - name: 3. Sincroniza o front-end (removendo arquivos antigos)
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --delete
+          switches: -avzr --delete -e "ssh -o StrictHostKeyChecking=no"
           path: front-end/
           remote_path: /var/www/cinematch/
           remote_host: ${{ secrets.SSH_HOST }}
@@ -49,6 +39,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          insecure: true
           script: |
             echo "--- Executando comandos no Back-end ---"
             cd /home/root-ghz/CineMatch/back-end
