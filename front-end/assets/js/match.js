@@ -8,7 +8,7 @@ async function carregarFilme() {
     const conteudo = document.getElementById('conteudo');
     try {
         // Chama a API para obter os detalhes do filme
-        const resposta = await fetch(`http://177.235.191.39:3535/movie_match?movie_id=${movie_id}`);
+        const resposta = await fetch(`/api/movie_match?movie_id=${movie_id}`);
         if (!resposta.ok) {
             throw new Error(`Status: ${resposta.status}`);
         }
@@ -22,44 +22,59 @@ async function carregarFilme() {
         document.querySelector('.photo-bio a').href = filme.tmdb_url;
         document.querySelector('.nota').textContent = 'Nota: ' + filme.rating;
         document.querySelector('.geners').textContent = filme.genres.map(g => g.name).join(', ');
+        document.body.style.backgroundImage = `url('${filme.background}')`;
         
         // Verifica se o array de providers não está vazio
         if (filme.providers && filme.providers.length > 0) {
-            // Chama a nova API para obter os links de streaming
-            const streamingLinksRes = await fetch(`http://177.235.191.39:3535/movie_streaming_links?movie_id=${movie_id}`);
-            if (!streamingLinksRes.ok) {
-                throw new Error(`Status: ${streamingLinksRes.status}`);
-            }
+          // Chama a nova API para obter os links de streaming
+          const streamingLinksRes = await fetch(
+            `/api/movie_streaming_links?movie_id=${movie_id}`
+          );
+          if (!streamingLinksRes.ok) {
+            throw new Error(`Status: ${streamingLinksRes.status}`);
+          }
 
-            const streamingLinks = await streamingLinksRes.json();
+          const streamingLinks = await streamingLinksRes.json();
 
-            const container = document.querySelector('.providers-container');
-            container.innerHTML = ''; // Limpa antes de adicionar
+          const container = document.querySelector(".providers-container");
+          container.innerHTML = ""; // Limpa antes de adicionar
 
-            // Verifica se existem links de streaming
-            if (streamingLinks.streaming_links && streamingLinks.streaming_links.length > 0) {
-                // Adiciona os links de streaming
-                streamingLinks.streaming_links.forEach((link, index) => {
-                    const aTag = document.createElement('a');
-                    aTag.href = link.link; // Link de streaming
-                    aTag.target = '_blank'; // Abre o link em uma nova aba
+          // Verifica se existem links de streaming
+          if (streamingLinks.streaming_links &&streamingLinks.streaming_links.length > 0){
+            // Adiciona os links de streaming
+            streamingLinks.streaming_links.forEach((link) => {
+              // Extrai o nome do provedor do texto "Ver [FILME] na [PROVEDOR]"
+              const linkText = link.provider_name || "";
+              const match = linkText.match(/na (.+)$/);
+              const extractedProviderName = match ? match[1].trim() : "";
 
-                    const img = document.createElement('img');
-                    img.src = filme.providers[index].logo; // Logo do provedor
-                    img.alt = filme.providers[index].name;
-                    img.title = filme.providers[index].name;
-                    img.className = 'provider_id';
-                    img.style.marginRight = '10px'; // opcional: espaço entre ícones
+              // Encontra o provedor correspondente
+              const provider = filme.providers.find(
+                (p) => p.name === extractedProviderName
+              );
 
-                    aTag.appendChild(img); // A imagem fica dentro da tag <a>
-                    container.appendChild(aTag); // Adiciona o link ao container
-                });
-            } else {
-                // Caso não haja links de streaming, exibe uma mensagem
-                const h3 = document.createElement('h3');
-                h3.textContent = 'Sem links de streaming disponíveis.';
-                container.appendChild(h3); // Adiciona a mensagem ao container
-            }
+              if (provider) {
+                const aTag = document.createElement("a");
+                aTag.href = link.link;
+                aTag.target = "_blank";
+
+                const img = document.createElement("img");
+                img.src = provider.logo;
+                img.alt = provider.name;
+                img.title = provider.name;
+                img.className = "provider_id";
+                img.style.marginRight = "10px";
+
+                aTag.appendChild(img);
+                container.appendChild(aTag);
+              }
+            });
+          } else {
+            // Caso não haja links de streaming, exibe uma mensagem
+            const h3 = document.createElement("h3");
+            h3.textContent = "Sem links de streaming disponíveis.";
+            container.appendChild(h3);
+          }
         } else {
             // Caso não haja provedores, exibe uma mensagem
             const container = document.querySelector('.providers-container');

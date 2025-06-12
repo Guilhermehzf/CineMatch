@@ -103,13 +103,13 @@ router.get('/movie', async (req, res) => {
       title: randomMovie.title,
       poster: `https://image.tmdb.org/t/p/w500${randomMovie.poster_path}`,
       genres: genre_list,
-      year: randomMovie.release_date?.split('-')[0] || 'N/A',
+      year: randomMovie.release_date?.split("-")[0] || "N/A",
       rating: randomMovie.vote_average,
       tmdb_url: `https://www.themoviedb.org/movie/${randomMovie.id}`,
-      providers: providers.map(p => ({
+      providers: providers.map((p) => ({
         name: p.provider_name,
-        logo: `https://image.tmdb.org/t/p/w45${p.logo_path}`
-      }))
+        logo: `https://image.tmdb.org/t/p/w45${p.logo_path}`,
+      })),
     });
 
   } catch (err) {
@@ -181,19 +181,19 @@ router.get('/movie_match', async (req, res) => {
         return g;
       }
     });
-
     res.json({
       id: movie.id,
       title: movie.title,
       poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      background: `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`,
       genres: genre_list,
-      year: movie.release_date?.split('-')[0] || 'N/A',
+      year: movie.release_date?.split("-")[0] || "N/A",
       rating: movie.vote_average,
       tmdb_url: `https://www.themoviedb.org/movie/${movie.id}`,
-      providers: providers.map(p => ({
+      providers: providers.map((p) => ({
         name: p.provider_name,
-        logo: `https://image.tmdb.org/t/p/w45${p.logo_path}`
-      }))
+        logo: `https://image.tmdb.org/t/p/w45${p.logo_path}`,
+      })),
     });
 
   } catch (err) {
@@ -206,7 +206,8 @@ router.get('/movie_match', async (req, res) => {
 function getStreamingLinksFromPython(movie_id) {
   return new Promise((resolve, reject) => {
     const path = `"${process.env.path_get_providers_link}"`;
-    exec(`python3 ${path} ${movie_id}`, (err, stdout, stderr) => {
+    const python_path = `"${process.env.python_path}"`;
+    exec(`${python_path} ${path} ${movie_id}`, (err, stdout, stderr) => {
       if (err) {
         reject(`Erro ao executar o script Python: ${stderr}`);
         return;
@@ -216,7 +217,7 @@ function getStreamingLinksFromPython(movie_id) {
         const data = JSON.parse(stdout);
         resolve(data);
       } catch (e) {
-        reject('Erro ao processar a resposta do script Python.');
+        reject("Erro ao processar a resposta do script Python.");
       }
     });
   });
