@@ -14,29 +14,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 2. Sincroniza o back-end (excluindo .env e node_modules)
-        uses: appleboy/rsync-deploy@v1
+        uses: burnett01/rsync-deployments@7.0.1
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "back-end/"
-          target: "/home/root-ghz/CineMatch/"
+          switches: -avzr --delete --exclude
+          path: back-end/
+          remote_path: /home/root-ghz/CineMatch/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
           exclude: |
-            node_modules
+            node_modules/
             .env
 
       - name: 3. Sincroniza o front-end (removendo arquivos antigos)
-        uses: appleboy/rsync-deploy@v1
+        uses: burnett01/rsync-deployments@7.0.1
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "front-end/"
-          target: "/var/www/cinematch/"
-          delete: true
+          switches: -avzr --delete
+          path: front-end/
+          remote_path: /var/www/cinematch/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: 4. Executa comandos no servidor
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
