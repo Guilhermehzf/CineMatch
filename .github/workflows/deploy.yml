@@ -1,4 +1,3 @@
-# Nome do Workflow
 name: Deploy Backend and Frontend to Personal Server
 
 on:
@@ -11,52 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixa o código do repositório
-      - name: Checkout code
+      - name: 1. Baixa o código do repositório
         uses: actions/checkout@v4
 
-      # 2. SINCRONIZA o back-end com o servidor, EXCLUINDO arquivos sensíveis
-      - name: Sync back-end files via rsync
-        uses: appleboy/rsync-deploy@v1.0.0
+      - name: 2. Sincroniza o back-end (excluindo .env e node_modules)
+        uses: appleboy/rsync-deploy@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
           source: "back-end/"
           target: "/home/root-ghz/CineMatch/"
-
-          # Lista de arquivos/pastas a serem ignorados
           exclude: |
             node_modules
             .env
 
-      # 3. Copia o CONTEÚDO da pasta do front-end
-      - name: Copy front-end files via scp
-        uses: appleboy/scp-action@v0.1.7
+      - name: 3. Sincroniza o front-end (removendo arquivos antigos)
+        uses: appleboy/rsync-deploy@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "front-end/*"
+          source: "front-end/"
           target: "/var/www/cinematch/"
-          overwrite: true
+          delete: true
 
-      # 4. Executa comandos no servidor
-      - name: Executing remote commands
-        uses: appleboy/ssh-action@v1.0.3
+      - name: 4. Executa comandos no servidor
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Comandos para o Back-end
-            echo "--- Deploying Back-end ---"
+            echo "--- Executando comandos no Back-end ---"
             cd /home/root-ghz/CineMatch/back-end
             npm install
-
-            echo "--- Deploying Front-end ---"
+            
+            echo "--- Verificando o Front-end ---"
             cd /var/www/cinematch
-            echo "Front-end files updated."
-
-            echo "--- Deploy finished successfully! ---"
+            echo "Arquivos do Front-end atualizados."
+            
+            echo "--- Deploy finalizado com sucesso! ---"
