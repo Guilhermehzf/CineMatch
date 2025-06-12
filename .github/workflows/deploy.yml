@@ -23,15 +23,30 @@ jobs:
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: 3. Sincroniza o front-end (removendo arquivos antigos)
-        uses: burnett01/rsync-deployments@7.0.1
+      - name: 3. Sincroniza o front-end via SSH (com sudo)
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          switches: -avzr --delete -e "ssh -o StrictHostKeyChecking=no" --rsync-path="sudo rsync"
-          path: front-end/
-          remote_path: /var/www/cinematch/
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          insecure: true
+          script: |
+            echo "--- Clonando repositório temporariamente ---"
+            cd /tmp
+            rm -rf CineMatch-frontend-temp
+            git clone https://github.com/${{ github.repository }}.git CineMatch-frontend-temp
+            cd CineMatch-frontend-temp
+            git checkout ${{ github.ref_name }}
+            
+            echo "--- Sincronizando Front-end com sudo ---"
+            echo "${{ secrets.PASSWORD_SUDO }}" | sudo -S rsync -avzr --delete ./front-end/ /var/www/cinematch/
+            echo "${{ secrets.PASSWORD_SUDO }}" | sudo -S chown -R www-data:www-data /var/www/cinematch/
+            echo "${{ secrets.PASSWORD_SUDO }}" | sudo -S chmod -R 755 /var/www/cinematch/
+            
+            echo "--- Limpando arquivos temporários ---"
+            rm -rf /tmp/CineMatch-frontend-temp
+            
+            echo "Front-end sincronizado com sucesso!"
 
       - name: 4. Executa comandos no servidor
         uses: appleboy/ssh-action@v1.0.3
@@ -41,10 +56,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           insecure: true
           script: |
-            echo "--- Ajustando permissões do Front-end ---"
-            echo "${{ secrets.PASSWORD_SUDO }}" | sudo -S chown -R www-data:www-data /var/www/cinematch/
-            echo "${{ secrets.PASSWORD_SUDO }}" | sudo -S chmod -R 755 /var/www/cinematch/
-            
             echo "--- Executando comandos no Back-end ---"
             cd /home/root-ghz/CineMatch/back-end
             npm install
