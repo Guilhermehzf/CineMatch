@@ -13,6 +13,13 @@ jobs:
       - name: 1. Baixa o código do repositório
         uses: actions/checkout@v4
 
+      - name: 1.1. Configura SSH e aceita host key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
       - name: 2. Sincroniza o back-end (excluindo .env e node_modules)
         uses: burnett01/rsync-deployments@7.0.1
         with:
